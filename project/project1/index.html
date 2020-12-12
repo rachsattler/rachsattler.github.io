@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Rachel Sattler" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="../../img/favicon.ico">
+    <title>Project 1: Global Health Determinants</title>
+    <meta name="generator" content="Hugo 0.79.0" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="../../css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="../../"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="../../post/">BLOG</a></li>
+        
+        <li><a href="../../projects/">PROJECTS</a></li>
+        
+        <li><a href="../../resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="../../project/project1/">Project 1: Global Health Determinants</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         October 18, 2020 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<div id="analyzing-determinants-of-life-expectancy-across-the-world" class="section level2">
+<h2>Analyzing Determinants of Life Expectancy Across the World</h2>
+<p>For this project, I was inspired by my Human Infectious Diseases and Clinical Bacteriology courses to study the effects of widespread vaccination coverage on global health. I found my first dataset on the WHO's official website <a href="https://apps.who.int/immunization_monitoring/globalsummary/timeseries/tscoveragebcg.html" class="uri">https://apps.who.int/immunization_monitoring/globalsummary/timeseries/tscoveragebcg.html</a>, and it breaks down vaccine coverage by vaccine type, country, and year. Next, I wanted to look primarily at life expectancy per country per year. I looked through a few different datasets online, but the one ended up choosing had many additional variables, such as mortality rate, status of country (developed or developing), and percent expenditure on health of total government expenditure, that I was interested in looking at and thought could potentially elevate the quality of my resulting conclusions. My second dataset came from <a href="https://www.kaggle.com/kumarajarshi/life-expectancy-who" class="uri">https://www.kaggle.com/kumarajarshi/life-expectancy-who</a>.</p>
+</div>
+<div id="joining-the-datasets" class="section level2">
+<h2>Joining the Datasets</h2>
+<div id="to-generate-one-comprehensive-dataset-i-decided-to-use-inner_join.-i-did-this-because-both-of-the-datasets-are-from-the-world-health-organization-so-i-expect-most-of-the-variables-to-be-in-both-datasets.-furthermore-since-i-mean-to-compare-vaccine-coverage-from-one-dataset-to-life-expectancy-in-another-any-data-not-in-both-is-not-super-helpful-for-this-comparison." class="section level5">
+<h5>To generate one comprehensive dataset, I decided to use inner_join. I did this because both of the datasets are from the World Health Organization, so I expect most of the variables to be in both datasets. Furthermore, since I mean to compare vaccine coverage from one dataset to life expectancy in another, any data not in both is not super helpful for this comparison.</h5>
+<pre class="r"><code># Here, I&#39;m looking at the structure of each dataset and the
+# variables they contain. This also helps me with the join
+# function, because I can tell if each dataset has the same
+# name for the column I want to join on.
+glimpse(vaxes)</code></pre>
+<pre><code>## Rows: 57,183
+## Columns: 8
+## $ WHO_REGION      &lt;chr&gt; &quot;EMR&quot;, &quot;EMR&quot;, &quot;EMR&quot;, &quot;EMR&quot;, &quot;EMR&quot;, &quot;EMR&quot;, &quot;EMR&quot;, &quot;EMR…
+## $ ISO_code        &lt;chr&gt; &quot;AFG&quot;, &quot;AFG&quot;, &quot;AFG&quot;, &quot;AFG&quot;, &quot;AFG&quot;, &quot;AFG&quot;, &quot;AFG&quot;, &quot;AFG…
+## $ Cname           &lt;chr&gt; &quot;Afghanistan&quot;, &quot;Afghanistan&quot;, &quot;Afghanistan&quot;, &quot;Afghani…
+## $ Continent       &lt;chr&gt; &quot;Asia&quot;, &quot;Asia&quot;, &quot;Asia&quot;, &quot;Asia&quot;, &quot;Asia&quot;, &quot;Asia&quot;, &quot;Asia…
+## $ Vaccine         &lt;chr&gt; &quot;BCG&quot;, &quot;BCG&quot;, &quot;BCG&quot;, &quot;BCG&quot;, &quot;BCG&quot;, &quot;BCG&quot;, &quot;BCG&quot;, &quot;BCG…
+## $ Year            &lt;dbl&gt; 1980, 1981, 1982, 1984, 1985, 1986, 1987, 1988, 1989,…
+## $ Percent_covrage &lt;dbl&gt; 33, 8, 10, 11, 17, 18, 27, 40, 38, 30, 21, 44, 15, 47…
+## $ Asterisc        &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…</code></pre>
+<pre class="r"><code>glimpse(life.expect)</code></pre>
+<pre><code>## Rows: 2,938
+## Columns: 22
+## $ Country                           &lt;chr&gt; &quot;Afghanistan&quot;, &quot;Afghanistan&quot;, &quot;Afgh…
+## $ Year                              &lt;dbl&gt; 2015, 2014, 2013, 2012, 2011, 2010,…
+## $ Status                            &lt;chr&gt; &quot;Developing&quot;, &quot;Developing&quot;, &quot;Develo…
+## $ `Life expectancy`                 &lt;dbl&gt; 65.0, 59.9, 59.9, 59.5, 59.2, 58.8,…
+## $ `Adult Mortality`                 &lt;dbl&gt; 263, 271, 268, 272, 275, 279, 281, …
+## $ `infant deaths`                   &lt;dbl&gt; 62, 64, 66, 69, 71, 74, 77, 80, 82,…
+## $ Alcohol                           &lt;dbl&gt; 0.01, 0.01, 0.01, 0.01, 0.01, 0.01,…
+## $ `percentage expenditure`          &lt;dbl&gt; 71.279624, 73.523582, 73.219243, 78…
+## $ `Hepatitis B`                     &lt;dbl&gt; 65, 62, 64, 67, 68, 66, 63, 64, 63,…
+## $ Measles                           &lt;dbl&gt; 1154, 492, 430, 2787, 3013, 1989, 2…
+## $ BMI                               &lt;dbl&gt; 19.1, 18.6, 18.1, 17.6, 17.2, 16.7,…
+## $ `under-five deaths`               &lt;dbl&gt; 83, 86, 89, 93, 97, 102, 106, 110, …
+## $ Polio                             &lt;dbl&gt; 6, 58, 62, 67, 68, 66, 63, 64, 63, …
+## $ `Total expenditure`               &lt;dbl&gt; 8.16, 8.18, 8.13, 8.52, 7.87, 9.20,…
+## $ Diphtheria                        &lt;dbl&gt; 65, 62, 64, 67, 68, 66, 63, 64, 63,…
+## $ `HIV/AIDS`                        &lt;dbl&gt; 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, …
+## $ GDP                               &lt;dbl&gt; 584.25921, 612.69651, 631.74498, 66…
+## $ Population                        &lt;dbl&gt; 33736494, 327582, 31731688, 3696958…
+## $ `thinness  1-19 years`            &lt;dbl&gt; 17.2, 17.5, 17.7, 17.9, 18.2, 18.4,…
+## $ `thinness 5-9 years`              &lt;dbl&gt; 17.3, 17.5, 17.7, 18.0, 18.2, 18.4,…
+## $ `Income composition of resources` &lt;dbl&gt; 0.479, 0.476, 0.470, 0.463, 0.454, …
+## $ Schooling                         &lt;dbl&gt; 10.1, 10.0, 9.9, 9.8, 9.5, 9.2, 8.9…</code></pre>
+<pre class="r"><code># Now, I want to join my datasets by both Year and Country,
+# but my vaxes dataset has a different name for countries. In
+# order to get inner_join to recognize that both country and
+# year are the same variable in both datasets, I need to
+# rename country
+names(vaxes)[3] &lt;- &quot;Country&quot;
+# I can check how many observations are dumped after the
+# inner join by determining how many rows are in both
+# datasets.
+setdiff(vaxes$Country, life.expect$Country)</code></pre>
+<pre><code>## [1] &quot;Andorra&quot;         &quot;Czech Republic&quot;  &quot;Eswatini&quot;        &quot;North Macedonia&quot;</code></pre>
+<pre class="r"><code>setdiff(life.expect$Country, vaxes$Country)</code></pre>
+<pre><code>## [1] &quot;Czechia&quot;                                  
+## [2] &quot;Swaziland&quot;                                
+## [3] &quot;The former Yugoslav republic of Macedonia&quot;</code></pre>
+<pre class="r"><code># We can see that a total of 7 countries were left off of our
+# comprehensive joined dataset: three from the life.expect
+# dataset, and four from the vaxes dataset. Here, I perform
+# the join and assign it to a new variable.
+proj &lt;- inner_join(vaxes, life.expect)</code></pre>
+<p>At first, I tried to join my dataset on the Country column of both, but because both of my datasets also had Year columns, those were not reconciled and my resulting datset contained a confusing mix of data, where the years for each dataset didn't match up. So some values, originally from the life.expect dataset were for one year and others, originally from the vaxes dataset, came from a completely different year. Obviously, this isn't very useful because you can't reasonably compare the vaccine coverage from 1980 to the life expectancy of a country in 2010. Therefore, I removed the &quot;by = &quot; function, and it looks like inner_join was able to determine on its own which columns matched up (Country <em>and</em> Year), and make sure both of those matched up in the final join.</p>
+</div>
+</div>
+<div id="tidying" class="section level2">
+<h2>Tidying</h2>
+<div id="here-i-am-looking-to-improve-the-readability-of-the-dataset-and-sure-there-is-no-redundant-information.-this-way-each-column-only-contains-information-on-a-single-variable-which-will-make-the-dataset-easier-to-navigate-when-i-generate-the-subsequent-summary-statistics-graphs-and-clustering." class="section level5">
+<h5>Here, I am looking to improve the readability of the dataset and sure there is no redundant information. This way, each column only contains information on a single variable, which will make the dataset easier to navigate when I generate the subsequent summary statistics, graphs, and clustering.</h5>
+<pre class="r"><code># Here, I am pivoting so that each vaccine type has its own
+# column.
+proj &lt;- proj %&gt;% pivot_wider(names_from = Vaccine, values_from = Percent_covrage)
+# I can see that there is some redundant information on
+# vaccine coverage from the life.expect dataset in the
+# columns Polio, Diphtheria, and Hepatitis B. I want to
+# remove these columns because I am only interested in
+# vaccine coverage data from the vaxes dataset, and this way,
+# there won&#39;t be any conflicting data.
+proj &lt;- proj[-c(13, 17, 19)]
+head(proj)</code></pre>
+<pre><code>## # A tibble: 6 x 53
+##   WHO_REGION ISO_code Country Continent  Year Asterisc Status `Life expectanc…
+##   &lt;chr&gt;      &lt;chr&gt;    &lt;chr&gt;   &lt;chr&gt;     &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;             &lt;dbl&gt;
+## 1 EMR        AFG      Afghan… Asia       2000 &lt;NA&gt;     Devel…             54.8
+## 2 EMR        AFG      Afghan… Asia       2001 &lt;NA&gt;     Devel…             55.3
+## 3 EMR        AFG      Afghan… Asia       2002 &lt;NA&gt;     Devel…             56.2
+## 4 EMR        AFG      Afghan… Asia       2003 &lt;NA&gt;     Devel…             56.7
+## 5 EMR        AFG      Afghan… Asia       2004 &lt;NA&gt;     Devel…             57  
+## 6 EMR        AFG      Afghan… Asia       2005 &lt;NA&gt;     Devel…             57.3
+## # … with 45 more variables: `Adult Mortality` &lt;dbl&gt;, `infant deaths` &lt;dbl&gt;,
+## #   Alcohol &lt;dbl&gt;, `percentage expenditure` &lt;dbl&gt;, Measles &lt;dbl&gt;, BMI &lt;dbl&gt;,
+## #   `under-five deaths` &lt;dbl&gt;, `Total expenditure` &lt;dbl&gt;, `HIV/AIDS` &lt;dbl&gt;,
+## #   GDP &lt;dbl&gt;, Population &lt;dbl&gt;, `thinness 1-19 years` &lt;dbl&gt;, `thinness 5-9
+## #   years` &lt;dbl&gt;, `Income composition of resources` &lt;dbl&gt;, Schooling &lt;dbl&gt;,
+## #   BCG &lt;dbl&gt;, DTP1 &lt;dbl&gt;, DTP3 &lt;dbl&gt;, DTP4 &lt;dbl&gt;, HepB_BD &lt;dbl&gt;, HepB3 &lt;dbl&gt;,
+## #   Hib3 &lt;dbl&gt;, MCV1 &lt;dbl&gt;, MCV2 &lt;dbl&gt;, PCV1 &lt;dbl&gt;, PCV2 &lt;dbl&gt;, PCV3 &lt;dbl&gt;,
+## #   Pol3 &lt;dbl&gt;, TT2plus &lt;dbl&gt;, VAD1 &lt;dbl&gt;, IPV1 &lt;dbl&gt;, Mumps &lt;dbl&gt;, Pol1 &lt;dbl&gt;,
+## #   RCV1 &lt;dbl&gt;, PAB_DTP1 &lt;dbl&gt;, Rota1 &lt;dbl&gt;, RotaC &lt;dbl&gt;, VAD2 &lt;dbl&gt;,
+## #   VADpp &lt;dbl&gt;, YFV &lt;dbl&gt;, Rubpp &lt;dbl&gt;, HPVfem &lt;dbl&gt;, MMR &lt;dbl&gt;, JapEnc &lt;dbl&gt;,
+## #   HPV1 &lt;dbl&gt;</code></pre>
+<p>Now, we can better navigate the data by hand, but for R to be able to recognize the data and peform the tasks I would like, I need to place the vaccine types back into a single column. This is especially important when we get to the graphing portion, because I want to plot the coverage of all vaccine types over time, averaged over all of the countries. To plot mutiple vaccines, I need pivot_wider so that one column contains all of the vaccine types, and another contains all of the percent coverages.</p>
+<pre class="r"><code>proj &lt;- proj %&gt;% pivot_longer(cols = c(24:53), names_to = &quot;Vaccine&quot;, 
+    values_to = &quot;Percent_Coverage&quot;)</code></pre>
+</div>
+</div>
+<div id="summary-statistics" class="section level2">
+<h2>Summary Statistics</h2>
+<div id="i-am-using-this-section-to-gain-a-better-idea-of-the-relationships-that-can-be-drawn-across-different-variables-for-each-country." class="section level5">
+<h5>I am using this section to gain a better idea of the relationships that can be drawn across different variables for each country.</h5>
+<pre class="r"><code># We can look at how many vaccines are available in this
+# dataset, and we can confirm that every vaccine type was
+# applied to each country, even if its percent coverage value
+# is NA
+proj %&gt;% group_by(Vaccine) %&gt;% unique() %&gt;% summarize(n())</code></pre>
+<pre><code>## # A tibble: 30 x 2
+##    Vaccine `n()`
+##    &lt;chr&gt;   &lt;int&gt;
+##  1 BCG      3633
+##  2 DTP1     3633
+##  3 DTP3     3633
+##  4 DTP4     3633
+##  5 HepB_BD  3633
+##  6 HepB3    3633
+##  7 Hib3     3633
+##  8 HPV1     3633
+##  9 HPVfem   3633
+## 10 IPV1     3633
+## # … with 20 more rows</code></pre>
+<p>To get an idea of the overall vaccine coverage in each country, I can add up all of the percent coverages for each vaccine, and divide by the total maximum possible coverage, which is 100% of all 30 vaccines. Then, I can look at which country has the greatest overall vaccine coverage.</p>
+<pre class="r"><code>proj %&gt;% group_by(Country)</code></pre>
+<pre><code>## # A tibble: 108,990 x 25
+## # Groups:   Country [188]
+##    WHO_REGION ISO_code Country Continent  Year Asterisc Status `Life expectanc…
+##    &lt;chr&gt;      &lt;chr&gt;    &lt;chr&gt;   &lt;chr&gt;     &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;             &lt;dbl&gt;
+##  1 EMR        AFG      Afghan… Asia       2000 &lt;NA&gt;     Devel…             54.8
+##  2 EMR        AFG      Afghan… Asia       2000 &lt;NA&gt;     Devel…             54.8
+##  3 EMR        AFG      Afghan… Asia       2000 &lt;NA&gt;     Devel…             54.8
+##  4 EMR        AFG      Afghan… Asia       2000 &lt;NA&gt;     Devel…             54.8
+##  5 EMR        AFG      Afghan… Asia       2000 &lt;NA&gt;     Devel…             54.8
+##  6 EMR        AFG      Afghan… Asia       2000 &lt;NA&gt;     Devel…             54.8
+##  7 EMR        AFG      Afghan… Asia       2000 &lt;NA&gt;     Devel…             54.8
+##  8 EMR        AFG      Afghan… Asia       2000 &lt;NA&gt;     Devel…             54.8
+##  9 EMR        AFG      Afghan… Asia       2000 &lt;NA&gt;     Devel…             54.8
+## 10 EMR        AFG      Afghan… Asia       2000 &lt;NA&gt;     Devel…             54.8
+## # … with 108,980 more rows, and 17 more variables: `Adult Mortality` &lt;dbl&gt;,
+## #   `infant deaths` &lt;dbl&gt;, Alcohol &lt;dbl&gt;, `percentage expenditure` &lt;dbl&gt;,
+## #   Measles &lt;dbl&gt;, BMI &lt;dbl&gt;, `under-five deaths` &lt;dbl&gt;, `Total
+## #   expenditure` &lt;dbl&gt;, `HIV/AIDS` &lt;dbl&gt;, GDP &lt;dbl&gt;, Population &lt;dbl&gt;,
+## #   `thinness 1-19 years` &lt;dbl&gt;, `thinness 5-9 years` &lt;dbl&gt;, `Income
+## #   composition of resources` &lt;dbl&gt;, Schooling &lt;dbl&gt;, Vaccine &lt;chr&gt;,
+## #   Percent_Coverage &lt;dbl&gt;</code></pre>
+<pre class="r"><code>proj_extended &lt;- proj %&gt;% group_by(Country) %&gt;% mutate(overall_coverage = (sum(Percent_Coverage, 
+    na.rm = T)/(30 * 100)))
+proj_extended %&gt;% arrange(-overall_coverage)</code></pre>
+<pre><code>## # A tibble: 108,990 x 26
+## # Groups:   Country [188]
+##    WHO_REGION ISO_code Country Continent  Year Asterisc Status `Life expectanc…
+##    &lt;chr&gt;      &lt;chr&gt;    &lt;chr&gt;   &lt;chr&gt;     &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;             &lt;dbl&gt;
+##  1 EMR        OMN      Oman    Asia       2000 &lt;NA&gt;     Devel…             72.6
+##  2 EMR        OMN      Oman    Asia       2000 &lt;NA&gt;     Devel…             72.6
+##  3 EMR        OMN      Oman    Asia       2000 &lt;NA&gt;     Devel…             72.6
+##  4 EMR        OMN      Oman    Asia       2000 &lt;NA&gt;     Devel…             72.6
+##  5 EMR        OMN      Oman    Asia       2000 &lt;NA&gt;     Devel…             72.6
+##  6 EMR        OMN      Oman    Asia       2000 &lt;NA&gt;     Devel…             72.6
+##  7 EMR        OMN      Oman    Asia       2000 &lt;NA&gt;     Devel…             72.6
+##  8 EMR        OMN      Oman    Asia       2000 &lt;NA&gt;     Devel…             72.6
+##  9 EMR        OMN      Oman    Asia       2000 &lt;NA&gt;     Devel…             72.6
+## 10 EMR        OMN      Oman    Asia       2000 &lt;NA&gt;     Devel…             72.6
+## # … with 108,980 more rows, and 18 more variables: `Adult Mortality` &lt;dbl&gt;,
+## #   `infant deaths` &lt;dbl&gt;, Alcohol &lt;dbl&gt;, `percentage expenditure` &lt;dbl&gt;,
+## #   Measles &lt;dbl&gt;, BMI &lt;dbl&gt;, `under-five deaths` &lt;dbl&gt;, `Total
+## #   expenditure` &lt;dbl&gt;, `HIV/AIDS` &lt;dbl&gt;, GDP &lt;dbl&gt;, Population &lt;dbl&gt;,
+## #   `thinness 1-19 years` &lt;dbl&gt;, `thinness 5-9 years` &lt;dbl&gt;, `Income
+## #   composition of resources` &lt;dbl&gt;, Schooling &lt;dbl&gt;, Vaccine &lt;chr&gt;,
+## #   Percent_Coverage &lt;dbl&gt;, overall_coverage &lt;dbl&gt;</code></pre>
+<pre class="r"><code># From here, we can see that Oman looks to have the highest
+# overall vaccine coverage.</code></pre>
+<p>My dataset includes an Asterisc column, where countries recieve an * if they report vaccine coverage over 99.5%. Originally, I tried to use this to confirm which country has the most vaccines with asterisks in that column, but I realized that that column was not accurate upon downloading. Instead, I can look at the countries that have a percent coverage vale of over 99.</p>
+<pre class="r"><code>proj %&gt;% group_by(Country) %&gt;% unique %&gt;% filter(Percent_Coverage &lt;= 
+    99) %&gt;% summarise(n = n()) %&gt;% arrange(-n)</code></pre>
+<pre><code>## # A tibble: 188 x 2
+##    Country                  n
+##    &lt;chr&gt;                &lt;int&gt;
+##  1 Panama                 241
+##  2 Oman                   236
+##  3 Morocco                222
+##  4 Bahrain                219
+##  5 Brazil                 219
+##  6 Honduras               218
+##  7 Peru                   215
+##  8 South Africa           211
+##  9 Ecuador                210
+## 10 Syrian Arab Republic   208
+## # … with 178 more rows</code></pre>
+<pre class="r"><code># From this, we can see that Panama and Oman have the
+# greatest number of reported coverages over 99%. I believe
+# the reason Panama shows up here as higher vaccine coverage
+# and not in my previous calculation because although Panema
+# has more vaccines that have &gt;90% coverage, they do not have
+# data available for other vaccines at coverages of below
+# 99%, while Omen does. Therefore, I can confirm that my
+# generated variable to determine overall coverage is
+# accurate, and a better predictor than the Asterisc variable
+# built into my dataset.</code></pre>
+<p>Next, we can look at the proportion of developed vs developing countries in this dataset, grouped by continent.</p>
+<pre class="r"><code>proj %&gt;% group_by(Continent, Status) %&gt;% summarize(n())</code></pre>
+<pre><code>## # A tibble: 10 x 3
+## # Groups:   Continent [6]
+##    Continent     Status     `n()`
+##    &lt;chr&gt;         &lt;chr&gt;      &lt;int&gt;
+##  1 Africa        Developing 31860
+##  2 Asia          Developed   1470
+##  3 Asia          Developing 26850
+##  4 Australia     Developed    870
+##  5 Australia     Developing  5010
+##  6 Europe        Developed  14610
+##  7 Europe        Developing  5940
+##  8 North America Developed    510
+##  9 North America Developing 14220
+## 10 South America Developing  7650</code></pre>
+<pre class="r"><code># From this, we can see that all countries in Africa and
+# South America were labeled as Developing. To find the
+# proportion of the developed countries, we can use the code
+# below.
+proj %&gt;% group_by(Continent) %&gt;% summarize(mean(Status == &quot;Developing&quot;))</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##   Continent     `mean(Status == &quot;Developing&quot;)`
+##   &lt;chr&gt;                                  &lt;dbl&gt;
+## 1 Africa                                 1    
+## 2 Asia                                   0.948
+## 3 Australia                              0.852
+## 4 Europe                                 0.289
+## 5 North America                          0.965
+## 6 South America                          1</code></pre>
+<pre class="r"><code># We can look at the average life expectancy of each country
+# in 2015
+proj %&gt;% group_by(Country) %&gt;% filter(Year == 2015) %&gt;% summarize(mean(`Life expectancy`, 
+    na.rm = T))</code></pre>
+<pre><code>## # A tibble: 179 x 2
+##    Country             `mean(\`Life expectancy\`, na.rm = T)`
+##    &lt;chr&gt;                                                &lt;dbl&gt;
+##  1 Afghanistan                                           65  
+##  2 Albania                                               77.8
+##  3 Algeria                                               75.6
+##  4 Angola                                                52.4
+##  5 Antigua and Barbuda                                   76.4
+##  6 Argentina                                             76.3
+##  7 Armenia                                               74.8
+##  8 Australia                                             82.8
+##  9 Azerbaijan                                            72.7
+## 10 Bahamas                                               76.1
+## # … with 169 more rows</code></pre>
+<pre class="r"><code># We can also look at the average life expectancy across the
+# globe during 2015.
+proj %&gt;% filter(Year == 2015) %&gt;% summarise(mean(`Life expectancy`, 
+    na.rm = T))</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   `mean(\`Life expectancy\`, na.rm = T)`
+##                                    &lt;dbl&gt;
+## 1                                   71.7</code></pre>
+<pre class="r"><code># Next, we can extract countries that had a life expectancy
+# of over 71.71 years in 2015 and
+long_life &lt;- proj %&gt;% filter(Year == 2015) %&gt;% filter(`Life expectancy` &gt;= 
+    71.71)
+# What proportion of these is considered to be a &#39;Developing&#39;
+# country?
+long_life %&gt;% summarise(mean(Status == &quot;Developing&quot;))</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   `mean(Status == &quot;Developing&quot;)`
+##                            &lt;dbl&gt;
+## 1                          0.755</code></pre>
+<pre class="r"><code># We can determine that 75.5% of countries that have above
+# the global average for life expectancy are considered
+# &#39;Developing&#39;</code></pre>
+<pre class="r"><code># Here, were looking at countries with the greatest average
+# expendature on healthcare, as a percentage of total GDP
+# form 2000-2015.
+proj %&gt;% group_by(Country) %&gt;% summarize(avg_expend = mean(`Total expenditure`, 
+    na.rm = T), sd_expend = sd(`Total expenditure`, na.rm = T)) %&gt;% 
+    arrange(-avg_expend)</code></pre>
+<pre><code>## # A tibble: 188 x 3
+##    Country                          avg_expend sd_expend
+##    &lt;chr&gt;                                 &lt;dbl&gt;     &lt;dbl&gt;
+##  1 Marshall Islands                      17.2      0    
+##  2 Tuvalu                                16.6      0    
+##  3 United States of America              15.7      1.31 
+##  4 Micronesia (Federated States of)      11.3      3.26 
+##  5 Sweden                                 9.93     1.23 
+##  6 Greece                                 9.31     0.561
+##  7 Palau                                  9.27     0    
+##  8 New Zealand                            9.14     2.74 
+##  9 Norway                                 9.09     0.484
+## 10 Uruguay                                8.9      1.50 
+## # … with 178 more rows</code></pre>
+<pre class="r"><code># We can also look at the values of GDP for countries
+# compared to their overall coverage. I filtered by a single
+# vaccine,
+proj_extended %&gt;% mutate(overall_GDP = mean(GDP)) %&gt;% filter(Year == 
+    2000, Vaccine == &quot;BCG&quot;) %&gt;% select(overall_GDP, overall_coverage) %&gt;% 
+    arrange(-overall_coverage)</code></pre>
+<pre><code>## # A tibble: 209 x 3
+## # Groups:   Country [170]
+##    Country  overall_GDP overall_coverage
+##    &lt;chr&gt;          &lt;dbl&gt;            &lt;dbl&gt;
+##  1 Oman           7831.             7.57
+##  2 Oman           7831.             7.57
+##  3 Bahrain       11054.             6.77
+##  4 Brazil         6143.             6.67
+##  5 Brazil         6143.             6.67
+##  6 Honduras       1502.             6.47
+##  7 Honduras       1502.             6.47
+##  8 Panama         5418.             6.39
+##  9 Panama         5418.             6.39
+## 10 Mexico         5322.             6.25
+## # … with 199 more rows</code></pre>
+</div>
+</div>
+<div id="graphing" class="section level2">
+<h2>Graphing</h2>
+<div id="i-can-better-visualize-this-data-by-creating-multiple-different-graph-types-which-will-summarize-the-data-found-in-my-joined-dataset.-graphing-is-a-very-useful-way-to-organize-data-to-explore-new-trends-and-relationships-between-variables-that-are-difficult-to-see-through-the-raw-data-and-summary-statistics." class="section level5">
+<h5>I can better visualize this data by creating multiple different graph types, which will summarize the data found in my joined dataset. Graphing is a very useful way to organize data to explore new trends and relationships between variables that are difficult to see through the raw data and summary statistics.</h5>
+</div>
+<div id="correlation-heat-map" class="section level3">
+<h3>Correlation Heat Map</h3>
+<pre class="r"><code>#Build correlation matrix
+cormat &lt;- proj %&gt;% select_if(is.numeric) %&gt;% cor(use=&quot;pair&quot;)
+tidycor &lt;- cormat %&gt;% as.data.frame %&gt;% rownames_to_column(&quot;var1&quot;) %&gt;%
+pivot_longer(-1,names_to=&quot;var2&quot;,values_to=&quot;correlation&quot;)
+tidycor</code></pre>
+<pre><code>## # A tibble: 324 x 3
+##    var1  var2                   correlation
+##    &lt;chr&gt; &lt;chr&gt;                        &lt;dbl&gt;
+##  1 Year  Year                        1     
+##  2 Year  Life expectancy             0.164 
+##  3 Year  Adult Mortality            -0.0900
+##  4 Year  infant deaths              -0.0430
+##  5 Year  Alcohol                    -0.0603
+##  6 Year  percentage expenditure      0.0275
+##  7 Year  Measles                    -0.0771
+##  8 Year  BMI                         0.110 
+##  9 Year  under-five deaths          -0.0473
+## 10 Year  Total expenditure           0.0907
+## # … with 314 more rows</code></pre>
+<pre class="r"><code>#Visualizing the matrix
+tidycor%&gt;%ggplot(aes(var1,var2,fill=correlation))+
+geom_tile()+
+scale_fill_gradient2(low=&quot;red&quot;,mid=&quot;orange&quot;,high=&quot;yellow&quot;)+
+  geom_text(aes(label=round(correlation,2)),color = &quot;black&quot;, size = 1)+ #overlay values
+theme(axis.text.x = element_text(angle = 90, hjust=1))+ #flips x-axis labels
+coord_fixed() #makes it square</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /> <em>Here, we are able to view how all of my numeric variables correlate to one another. It can be seen that variables such as percentage expendature and GDP, and years of schooling and income composition of resources (amount of income contributed to public resources) are highly correlated with one another, which means they are good predictors for the other. However, variables like thinness and deaths per 1,000 births due to HIV/AIDS are generally not very helpful in the sense that they generally do not correlate well with the other measured variables.</em></p>
+</div>
+<div id="scatter-plot-of-vaccine-coverage-over-time" class="section level3">
+<h3>Scatter Plot of Vaccine Coverage Over Time</h3>
+<pre class="r"><code># Build the graph layer-by-layer.
+proj.graph1 &lt;- proj %&gt;% group_by(Vaccine, Year) %&gt;% summarize(mean_coverage = mean(Percent_Coverage, 
+    na.rm = T), .groups = &quot;keep&quot;) %&gt;% ggplot(aes(Year, mean_coverage, 
+    color = Vaccine)) + geom_point() + geom_line(aes(group = Vaccine)) + 
+    ggtitle(&quot;Average Global Vaccine Coverage from 2000-2015&quot;) + 
+    xlab(&quot;Year&quot;) + ylab(&quot;Average Global Coverage&quot;) + theme_minimal() + 
+    scale_x_continuous(breaks = seq(2000, 2015, 2))
+proj.graph1</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>proj.graph1 + facet_wrap(~Vaccine)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-10-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># Could not change the colors, because the color palletes I
+# found online did not include enough different colors to
+# work for my 30 vaccine variables.</code></pre>
+<p><em>Here, I group by vaccine type and year to average the coverage values across all the countries, in order to get a broader outlook of vaccine coverage globally, as time progresses. I can also look at a faceted graph of these values to better track the coverage of a single vaccine over time. The faceted graph may not provide much information in terms of comparing vaccines with similar trends like with the (BCG) and meningococcal (MCV) vaccines, but it does allow us to better see more drastic trends, like with yellow fever (YFV) and rotavirus (RotaC) vaccines, which have been administered at much higher numbers in more recent years. From this data, we can also see where we have insufficient, or truncated data collection in the recent years, such as with the MMR and Mumps vaccines. This data is not immediately useful, but can help inform where there are gaps in the data and direct future data collection methods.</em></p>
+</div>
+<div id="bar-plot-of-adult-mortality-per-continent" class="section level3">
+<h3>Bar Plot of Adult Mortality per Continent</h3>
+<pre class="r"><code># Next, we can look more specifically at how the vaccine
+# coverage is affected by total expendature on
+proj %&gt;% ggplot(aes(Continent, `Adult Mortality`, fill = Status)) + 
+    geom_bar(stat = &quot;summary&quot;, position = &quot;dodge&quot;) + geom_errorbar(stat = &quot;summary&quot;, 
+    position = &quot;dodge&quot;) + theme_minimal() + scale_fill_brewer(palette = &quot;Greens&quot;)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /> <em>It is easy to see that mortality is significantly higher in developing countries compared to developed countries. There are a lot of ways to further explore this, such as looking at access to healthcare, disease prevalance, and amount of infectious disease reservoirs per country that could help explain this phenomenon.</em></p>
+</div>
+</div>
+<div id="clustering---pam" class="section level2">
+<h2>Clustering - PAM</h2>
+<div id="we-perform-clustering-to-try-to-recreate-the-structure-of-the-data-without-using-every-variable.-we-do-this-by-creating-groups-in-which-our-variables-can-be-clustered-into-which-are-meant-to-encompass-the-overall-trends-seen-in-the-entire-dataset." class="section level5">
+<h5>We perform clustering to try to recreate the structure of the data without using every variable. We do this by creating groups in which our variables can be clustered into, which are meant to encompass the overall trends seen in the entire dataset.</h5>
+<pre class="r"><code># Fist, we clean up the dataset to include only numeric
+# variables and no NA values
+proj_cluster &lt;- proj %&gt;% na.omit() %&gt;% select_if(is.numeric)
+# Next, we find silhouette values to determine the optimal
+# amount of clusters to use.
+sil_width &lt;- vector()
+for (i in 2:10) {
+    kms &lt;- kmeans(proj_cluster, centers = i)
+    sil &lt;- silhouette(kms$cluster, dist(proj_cluster))
+    sil_width[i] &lt;- mean(sil[, 3])
+}
+ggplot() + geom_line(aes(x = 1:10, y = sil_width)) + scale_x_continuous(name = &quot;k&quot;, 
+    breaks = 1:10)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># This tells me to use 2 clusters for further analysis.
+pam &lt;- proj_cluster %&gt;% scale %&gt;% pam(2)
+# Run our clustering
+pam</code></pre>
+<pre><code>## Medoids:
+##       ID        Year Life expectancy Adult Mortality infant deaths    Alcohol
+## [1,]  99  0.48275159      -1.3490236       0.7288954     0.1140857 -0.9649668
+## [2,] 430 -0.01663502       0.5955278      -0.2906251    -0.2185460 -0.2978299
+##      percentage expenditure    Measles        BMI under-five deaths
+## [1,]             -0.2858779 -0.1548777 -0.7887965         0.1916200
+## [2,]             -0.2127925 -0.2247289  0.5675919        -0.2294585
+##      Total expenditure   HIV/AIDS         GDP  Population thinness  1-19 years
+## [1,]        -0.6268896 -0.0272131 -0.41779270 -0.08056148            0.9963197
+## [2,]        -0.2731094 -0.3222202 -0.03940409  0.06871705           -0.8588394
+##      thinness 5-9 years Income composition of resources  Schooling
+## [1,]          0.9035872                      -1.2314074 -1.0669784
+## [2,]         -0.8828868                       0.3297923  0.3095886
+##      Percent_Coverage
+## [1,]              NaN
+## [2,]              NaN
+## Clustering vector:
+##   [1] 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 1 1 1 1
+##  [38] 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
+##  [75] 2 2 2 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+##  [ reached getOption(&quot;max.print&quot;) -- omitted 1386 entries ]
+## Objective function:
+##    build     swap 
+## 3.423583 3.255078 
+## 
+## Available components:
+##  [1] &quot;medoids&quot;    &quot;id.med&quot;     &quot;clustering&quot; &quot;objective&quot;  &quot;isolation&quot; 
+##  [6] &quot;clusinfo&quot;   &quot;silinfo&quot;    &quot;diss&quot;       &quot;call&quot;       &quot;data&quot;</code></pre>
+<pre class="r"><code># Now, graph pairwise combinations of variables I&#39;m
+# interested in
+pamclust &lt;- proj_cluster %&gt;% mutate(cluster = as.factor(pam$clustering))
+pamclust %&gt;% ggplot(aes(`Total expenditure`, `Life expectancy`, 
+    color = cluster)) + geom_point() + scale_color_brewer(palette = &quot;Paired&quot;)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-12-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>pamclust %&gt;% ggplot(aes(`Income composition of resources`, `Total expenditure`, 
+    color = cluster)) + geom_point() + scale_color_brewer(palette = &quot;Paired&quot;)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-12-3.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>pamclust %&gt;% ggplot(aes(`Life expectancy`, `Income composition of resources`, 
+    color = cluster)) + geom_point() + scale_color_brewer(palette = &quot;Paired&quot;)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-12-4.png" width="672" style="display: block; margin: auto;" /> <em>Here, we can see that with my first cluster, a loose trend can be seen in which there is a group with very high life expectancy and medium-to-low expendature on health, and there is another cluster that has lower lie expectancy and more variation in expendature. In the second plot, we can see grouping based on countries with high income composition of resources (which measures the proportion of income that goes towards healthcare), but there does not seem to be any effect of total expenditure on the grouping, because in both groups, total expendature is distributed very similarly. Finally, with the last plot, we can see a very strong grouping of countries with high income composition of resources and life expectancy, which means that many observations in my dataset can be grouped well using these two variables. Taking into account all of these graphs and looking closely at the data, we can see that cluster 2 on each graph is mainly composed of the developed countries in my dataset.</em></p>
+<pre class="r"><code>pam$silinfo$avg.width</code></pre>
+<pre><code>## [1] 0.3040963</code></pre>
+<pre class="r"><code>pam$silinfo$widths %&gt;% as.data.frame %&gt;% mutate(x = dim(pam$silinfo$widths)[1]:1) %&gt;% 
+    ggplot(aes(x, y = sil_width, fill = as.factor(cluster))) + 
+    geom_bar(stat = &quot;identity&quot;) + xlab(&quot;&quot;) + facet_grid(cluster ~ 
+    ., scales = &quot;free_y&quot;) + coord_flip() + theme(legend.position = &quot;none&quot;)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>plot(pam, which = 2)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-13-2.png" width="672" style="display: block; margin: auto;" /> <em>This shows me that my clustering analysis (with an average silhouette width of 0.3) is not structured well enough to be representative of my data. Perhaps this means that the observations in my dataset are far too varied (since there were so many variables recorded) to be clustered using two groups, even though that was the optimal group size calculated above. This could mean that some further data cleanup should be used to better extrapolate the structure of the overall dataset.</em></p>
+</div>
+</div>
+
+            
+        <hr>         <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div> 
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="../../js/docs.min.js"></script>
+<script src="../../js/main.js"></script>
+
+<script src="../../js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

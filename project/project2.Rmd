@@ -1,0 +1,384 @@
+---
+title: "Project_Two"
+author: "Rachel Sattler"
+date: "2020-11-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+hook_output = knit_hooks$get('output')
+knit_hooks$set(output = function(x, options) {
+  # this hook is used only when the linewidth option is not NULL
+  if (!is.null(n <- options$linewidth)) {
+    x = knitr:::split_lines(x)
+    # any lines wider than n should be wrapped
+    if (any(nchar(x) > n)) x = strwrap(x, width = n)
+    x = paste(x, collapse = '\n')
+  }
+  hook_output(x, options)
+})
+
+#HERE'S THE CLASSIFICAITON DIAGNOSTICS FUNCTION
+class_diag<-function(probs,truth){
+  tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),truth)
+  acc=sum(diag(tab))/sum(tab)
+  sens=tab[2,2]/colSums(tab)[2]
+  spec=tab[1,1]/colSums(tab)[1]
+  ppv=tab[2,2]/rowSums(tab)[2]
+  f1=2*(sens*ppv)/(sens+ppv)
+
+  if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE){
+    truth<-as.numeric(truth)-1}
+  
+  #CALCULATE EXACT AUC
+  ord<-order(probs, decreasing=TRUE)
+  probs <- probs[ord]; truth <- truth[ord]
+  
+  TPR=cumsum(truth)/max(1,sum(truth)) 
+  FPR=cumsum(!truth)/max(1,sum(!truth))
+  
+  dup<-c(probs[-1]>=probs[-length(probs)], FALSE)
+  TPR<-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1)
+  
+  n <- length(TPR)
+  auc<- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+
+  data.frame(acc,sens,spec,ppv,f1,auc)
+}
+
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE,fig.align="center",warning=FALSE,message=FALSE,fig.width=8, fig.height=5, linewidth=60)
+options(tibble.width = 100,width = 100)
+library(tidyverse)
+knitr::opts_chunk$set(echo = TRUE)
+library(readr)
+library(dplyr)
+library(plotly)
+possum <- read_csv("possum.csv")
+head(possum)
+#going to drop the first two columns, because they are not necessary to the analyses I will be doing.
+possum <- possum[3:15]
+head(possum)
+str(possum)
+#after omitting the NA's, we threw out 3 observations. I still have 101 observations left to work with. 
+possum <- possum %>% na.omit()
+str(possum)
+```
+
+## Introduction 
+For this project, I decided to choose a more lighthearted dataset to analyze This dataset contains nine morphometric measurements of 101 mountain brushtail possums trapped at seven different sites across Austrailia. More information on my data can be found at <https://vincentarelbundock.github.io/Rdatasets/datasets.html>. My dataset includes 13 different variables. The ones I will be focusing on are the sex, site, total length, tail length, age, and belly girth.  
+
+## MANOVA
+I will be performing a MANOVA to determine the effect of capture site on the total length, age, belly girth, and tail length of a possum. 
+
+```{r}
+#First, we run the assumptions of the MANOVA to determine whether the data is fit to run a MANOVA on. 
+#Multivariate normality for each group
+#install.packages("rstatix")
+library(rstatix)
+
+group <- possum$site
+DVs <- possum %>% select(age, hdlngth, taill, belly)
+
+#Test multivariate normality for each group (null: assumption met)
+sapply(split(DVs,group), mshapiro_test)
+
+#All but one of my sites showed a p value of greater than 0.05, so my data does *not* meet the requirements for the MANOVA. If my data were to have passed the Shapiro-Wilk test of normality, then I would move on to test for homogeny of covariance matrices using Box's M-test to test for equal variance for each DV within each group and equal covariance between any two DVs. 
+
+```
+
+
+```{r}
+#I went ahead and performed the MANOVA anyway, but keep in mind that my data does not meet the assumptions for MANOVA and therefore, this is not the appropriate test to run on my data. 
+#I decided to use a subset of the available numeric variables in my dataset to minimize the amount of T tests I perform. This way, I will not decrease the significance level as drastically as if I used all of the variables. So I am only going to look at the variables I am most interested in, which are age, total length, belly girth, and tail length. 
+man1<-manova(cbind(age, totlngth, taill, belly)~site, data=possum)
+summary(man1)
+```
+
+```{r}
+#The results are significant (p = 4.82e-15), so I run each of the one way ANOVAs
+summary.aov(man1)
+#From here, we can tell that only the total length (p = 0.001952), and tail length (p = 0.0001275) vary significantly by site. 
+possum%>%group_by(site)%>%summarize(mean(totlngth),mean(taill))
+```
+
+```{r}
+#Next, we do four pairwise T tests to determine exactly which sites differ significantly for total length and tail length. 
+pairwise.t.test(possum$totlngth, possum$site, p.adj = "none")
+pairwise.t.test(possum$taill, possum$site, p.adj = "none")
+#Count tests: 
+#1 MANOVA, 4 ANOVAs, and 42 Pairwise T tests 
+1 + 4 + 42
+#Bonferroni correction
+0.05/47
+```
+*After the Bonferroni correction, sites 1 vs 2, 2 vs 3, 3 vs 4, 3 vs 5, 4 vs 5, 1 vs 6, 4 vs 6, 1 vs 7, and 4 vs 7 had a P value of < .00106 when comparing total length of the possums.*
+*After the Bonferroni correction, sites 1 vs 4, 2 vs 4, 2 vs 5, 2 vs 6, and 2 vs 7 had a P value of < .00106 when compairing tail length across the sites.*
+
+**However, it is important to note again that my data did not pass the MANOVA assumptions, so these "significant" values are not really applicable.**
+
+
+## Randomization Test 
+I will be performing a mean difference randomization test to determine whether there is a significant difference in total length and tail length across each of the 7 sites. 
+
+Null Hypothesis: There is no significant difference between the foot length between male and female possums. 
+
+Alternative Hypothesis: There is a significant difference in the mean foot length between male and female possums. 
+
+```{r}
+#Tabulate the means for the raw data
+possum %>% group_by(sex) %>% summarize(mean(footlgth))
+#Visualize the means for the raw data
+#Here is the visualization for distribution of tail lengths, faceted by site
+ggplot(possum,aes(footlgth,fill=sex))+geom_histogram(bins=6.5)+
+  facet_wrap(~sex,ncol=2)+theme(legend.position="none")
+```
+
+```{r}
+#Now, make a randomized dataset
+#This randomizes the total lengths by site
+set.seed(1234)
+rand_dist1<-vector() 
+
+for(i in 1:5000){
+new1<-data.frame(footlgth=sample(possum$footlgth),sex=possum$sex) 
+rand_dist1[i]<-mean(new1[new1$sex=="m",]$footlgth)- 
+  mean(new1[new1$sex=="f",]$footlgth)}
+#Check to make sure this for loop works 
+head(rand_dist1)
+```
+
+```{r}
+#Find the mean difference of the actual data to give us the cutoffs for the p value
+possum%>%group_by(sex)%>%
+  summarize(means=mean(footlgth))%>%summarize(`mean_diff1`=diff(means))
+#Plot randomized means and the cutoffs 
+{hist(rand_dist1,main="",ylab=""); abline(v = c(-1.291606	 , 1.291606	),col="red")}
+#Finally, calculate the p value 
+mean(rand_dist1> 1.291606  | rand_dist1 < -1.291606) 
+```
+*After completing the distribution plots for the foot length of the possums, faceted by sex, my test looked promising. However, after completing my randomization test, it looks as though the probability of getting the same mean difference between the foot lengths of males vs females in either extreme is 0.145, which is not significant. This means I can conclude that foot length does not vary significantly betewen male and female possums used to generate this data.*
+
+## Linear Regression Model 
+Here, I am going to look at whether tail length and age can explain variation in total body length in possums. 
+
+```{r}
+#First, mean-center numeric variables
+possum$age_c <- possum$age - mean(possum$age)
+possum$taill_c <- possum$taill - mean(possum$taill)
+#Run the prediction model using the two variables tail length and age, and their interaction.
+fit<-lm(totlngth~sex+age_c+taill_c+age_c*taill_c, data= possum)
+summary(fit)
+```
+### Analyzing the results of my regresison model
+
+Intercept: My model tells me that when age and tail length both have values of zero, the total body length of the possum will be 88.08174 cm. 
+
+sex: controlling for tail length and age, the effect of being male decreases the body length by an average of 1.26 cm. 
+
+age: controlling for tail length and sex, for every single incremental increase in age, the body length of the possum increases by 0.433 cm.
+
+tail length: controlling for age and sex, for every single incremental increase in tail length, the body length of the possum increases by 1.13cm. 
+
+interaction: when taking tail length into account, the effect of age on body size decreases by 0.167 cm. 
+
+```{r}
+#Plot the regression of tail length and sex
+possum %>% summarize(mean(taill), mean(age))
+possum %>% ggplot(aes(taill, totlngth, color = sex)) + 
+    geom_point() + geom_smooth(method = "lm") + geom_vline(xintercept = 37.0495)
+
+fit2<-lm(totlngth~+age+taill, data= possum)
+#Plot the regression of tail length and age. 
+#Setup Axis
+axis_x <- seq(min(possum$age), max(possum$age), by = .05)
+axis_y <- seq(min(possum$taill), max(possum$taill), by = .05)
+#Sample points
+totlngth_surface <- expand.grid(age = axis_x, taill = axis_y, KEEP.OUT.ATTRS = F)
+totlngth_surface$totlngth <- predict.lm(fit2, newdata = totlngth_surface)
+
+mult_plot <- plot_ly(possum, 
+                     x = ~age, 
+                     y = ~taill, 
+                     z = ~totlngth,
+                     type = "scatter3d", 
+                     mode = "markers")
+
+mult_plot <- add_trace(p = mult_plot,
+                       z = totlngth_surface,
+                       x = axis_x,
+                       y = axis_y,
+                       type = "surface",
+                       color="gray")
+#Type mult_plot into consol to view.
+```
+
+Check assumptions for linear regression
+```{r}
+#Homoscedasticity 
+resids<-lm(totlngth~taill, data=possum)$residuals
+fitted<-lm(totlngth~taill, data=possum)$fitted.values
+ggplot()+geom_point(aes(fitted,resids))
+#We can see that the points look generally even across the entire plot and do not flare out
+```
+
+```{R}
+#Normality 
+ggplot()+geom_histogram(aes(resids),bins=10)
+par(mfrow=c(1,2)); hist(resids); qqnorm(resids); qqline(resids, col='red')
+#This also shows us that our residuals generally fit a  normal distribution.
+#normality does not look great, but it looks fairly good. 
+```
+
+```{r}
+#Linearity
+breaks <- seq(min(possum$taill), max(possum$taill), len=8)
+ggplot(possum, aes(taill, totlngth)) +
+  geom_point(alpha=.3) +
+  theme_bw()+
+  geom_vline(xintercept=breaks, lty=2,color='gray50')
+#The relationship between tail length and total length is generally linear. There is no strange curvature seen in our plot. 
+```
+
+```{r}
+#Robust standard errors 
+#install.packages("sandwich")
+library(sandwich)
+library(lmtest)
+bptest(fit)
+#This confirms that my data passes the homoscedastic assumption ( p = 0.1151)
+
+#uncorrected SEs
+summary(fit)$coef
+#corrected SE's
+coeftest(fit, vcov = vcovHC(fit))
+summary(fit)
+```
+*After using recomputing the regression with the robust standard error correction, we can see that there is a very small difference in the standard error values, but both of my predictor variables become significant, meaning that controlling for the other, each predictor variable does significantly affect the total body length of the possum. The interaction between the two predictor variables remained insignificant. We can also conclude here that my model is able to explain 39.5% of the variation in body length using tail length and age. This R^2 value is slightly lower than it was with the original regression.*
+
+## Bootstrapped Standard Errors
+This is used to control for unmet normality assumptions. 
+```{r}
+#Bootstrap observations
+set.seed(348)
+
+boot_data <- data.frame()
+
+# resampling data, repeat 5000 times
+samp_obs <- replicate(5000, {
+    boot_data <- sample_frac(possum, replace = T)
+    fit3 <- lm(totlngth~sex+age_c+taill_c+age_c*taill_c, data = boot_data)
+    coef(fit3)
+})
+# Estimated SEs
+samp_obs %>% t %>% as.data.frame %>% summarize_all(sd)
+```
+*We can see that by bootstrapping my observations, my SEs decreased slightly. This change is minimal because my data had already passed the normality assumption, so it didn't necessarily need to be corrected for. Between the robust SE's and my original SE's, the p value for my age_c variable decreased slightly and the one for my tail length_c value increased very slightly, but the significance remained the same. Taking into account the bootstrapped SE's, the SE's decrease slightly, and the p values increase very slightly, but the significance of each variable remains the same.*
+
+## Logistic Regression with Two Variables 
+Here, I am going to generate a model to predict sex by chest girth and head length. 
+
+```{r}
+#recode m/f as f = 1, m = 0
+data<-possum%>%mutate(y=ifelse(sex=="f",1,0))
+head(data)
+#perform the logistic model
+log_fit<-glm(y~hdlngth+chest,data=data,family=binomial(link="logit"))
+coeftest(log_fit)
+exp(coef(log_fit))
+```
+
+From these results, we can see that controlling for the other, both head length and chest girth are significant predictors of sex. Controlling for chest girth, for every single unit change in head length, the odds of being female decrease by a factor of 0.8209103 (p = 0.01633), or by ~18%. Controlling for head length, for every single unit increase in chest girth, the odds of being female increase by a factor of 1.4059650 (p = 0.0158), or ~41%. 
+```{r}
+data$prob <- predict(log_fit)
+data$pred <- ifelse(data$prob>0.5, 1, 0)
+#Confusion Matrix
+table(truth=data$y, prediction=data$pred) %>% addmargins
+#Accuracy, Sensitivity (TPR), Specificity (TNR), Precision (PPV), and AUC
+class_diag(data$pred,data$y)
+```
+
+*From here, we can see that my model is able to explain just about 57% of the time, my model is able to correctly predict male vs. female. My true negative rate is really high (98%) and  my precision is pretty high at 87%, and my accuracy is moderately performing at 64%,  and my true positive rate is very low, at only 16%.*
+
+```{r}
+#Density plot of log-odds
+data %>% ggplot(aes(prob, fill=sex))+geom_density(alpha=.3)+
+  geom_vline(xintercept=-0.3,lty=2)
+```
+```{r}
+#ROC Curve 
+library(plotROC)
+ROCplot<-ggplot(data)+geom_roc(aes(d=y,m=prob), n.cuts=0) 
+ROCplot
+
+#Compute AUC
+calc_auc(ROCplot)
+```
+*My AUC value is, again, 67%. This means that my model does a pretty poor job of predicting sex based on head length and chest girth, because a truly random prediction would give an AUC value of 50%, and my AUC value is only slightly higher than that.*
+
+## Logistic Regression with All Variables
+```{r}
+log_fit_all<-glm(y~age+totlngth+site+Pop+hdlngth+skullw+taill+footlgth+earconch+eye+chest+belly,data=data,family="binomial")
+coeftest(log_fit_all)
+exp(coef(log_fit_all))
+
+data$prob <- predict(log_fit_all)
+data$pred <- ifelse(data$prob>0.5, 1, 0)
+class_diag(data$pred,data$y)
+```
+*Here, we can see that from adding all of my explanatory variables, only one becomes significant for predicting sex. Controlling for all other variables, as eye size (distance from medial canthus to lateral canthus of right eye) increases by a single unit, the odds of being female decrease by a factor of 0.567. We can also see that the precision and accuracy have increased. The specificity decreased, but is still pretty promising. The sensitivity also increased, but is still pretty poor at 38%. We can also see that my AUC value actually increased from 55% to 61%, meaning using all of these variables actually helped my model's ability to predict sex.* 
+
+```{r}
+#10-fold CV with all variables
+data<-possum%>%mutate(y=ifelse(sex=="f",1,0))
+set.seed(1234)
+k=10 
+data<-data[sample(nrow(data)),] 
+folds<-cut(seq(1:nrow(data)),breaks=k,labels=F) 
+diags<-NULL
+for(i in 1:k){
+  train<-data[folds!=i,]
+  test<-data[folds==i,]
+  truth<-test$y 
+  fit<-glm(y~age+totlngth+site+Pop+hdlngth+skullw+taill+footlgth+earconch+eye+chest+belly,data=train,family="binomial")
+  probs<-predict(fit,newdata = test,type="response")
+  diags<-rbind(diags,class_diag(probs,truth))
+}
+summarize_all(diags,mean)
+```
+*We can see that after training my model using 10-fold CV, my model is actually better able to predict sex, because the AUC value increased a bit more to 62%. The specificity and accuracy values decreased slightly, but my sensitivity values increased to 45%.*
+
+```{r}
+#LASSO
+data<-possum%>%mutate(y=ifelse(sex=="f",1,0))
+library(glmnet)
+y<-as.matrix(data$y)
+x<-model.matrix(y~age+totlngth+site+Pop+hdlngth+skullw+taill+footlgth+earconch+eye+chest+belly,data=data)[,-1] 
+head(x)
+#standardize my predictor variables
+x<-scale(x)
+#perform LASSO
+cv<-cv.glmnet(x,y,family="binomial")
+lasso<-glmnet(x,y,family="binomial",lambda=cv$lambda.1se)
+coef(lasso)
+```
+*From the LASSO, we can see that only site and eye size variables should be used to predict sex for my dataset. Because LASSO penalizes the use of additional predictor variables, we are able to use it to determine which variables are the most predictive of my response (sex), and then can use those to re-train my model.*
+```{r}
+#Cross-Validate the LASSO model
+set.seed(1234)
+k=10
+data <- data %>% sample_frac 
+folds <- ntile(1:nrow(data),n=10) 
+diags<-NULL
+for(i in 1:k){
+  train <- data[folds!=i,] 
+  test <- data[folds==i,] 
+  truth <- test$y 
+  fit <- glm(y~site+eye,
+             data=train, family="binomial")
+  probs <- predict(fit, newdata=test, type="response")
+  diags<-rbind(diags,class_diag(probs,truth))
+}
+diags%>%summarize_all(mean)
+```
+*Finally, we can see that we have created a model with significantly better specificity and sensitivity than the previous models. The AUC value (74%!) is much greater than the one from the model with all the response variables, and we can see a large increase in the sensitivity to 53%. The specificity and accuracy values decrease very slightly, but overall, it looks like this model is the best for predicting sex, by maximizing the sensitivity and generating the highest AUC value of all the models. Therefore, we can conclude that eye size and site are the best predictors for the sex of the possums included in this dataset, and although our AUC is still not great, it is much better when using only these two predictors instead of all predictors!*

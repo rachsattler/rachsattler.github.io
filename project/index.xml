@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Projects on Computational Biology and Bioinformatics Course Summary</title>
+    <link>/project/</link>
+    <description>Recent content in Projects on Computational Biology and Bioinformatics Course Summary</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Wed, 25 Nov 2020 00:00:00 +0000</lastBuildDate><atom:link href="/project/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Project_Two</title>
+      <link>/project/project2/</link>
+      <pubDate>Wed, 25 Nov 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/project/project2/</guid>
+      <description>Introduction For this project, I decided to choose a more lighthearted dataset to analyze This dataset contains nine morphometric measurements of 101 mountain brushtail possums trapped at seven different sites across Austrailia. More information on my data can be found at https://vincentarelbundock.github.io/Rdatasets/datasets.html. My dataset includes 13 different variables. The ones I will be focusing on are the sex, site, total length, tail length, age, and belly girth.
+ MANOVA I will be performing a MANOVA to determine the effect of capture site on the total length, age, belly girth, and tail length of a possum.</description>
+    </item>
+    
+    <item>
+      <title>Project 1: Global Health Determinants</title>
+      <link>/project/project1/</link>
+      <pubDate>Sun, 18 Oct 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/project/project1/</guid>
+      <description>Analyzing Determinants of Life Expectancy Across the World For this project, I was inspired by my Human Infectious Diseases and Clinical Bacteriology courses to study the effects of widespread vaccination coverage on global health. I found my first dataset on the WHO&#39;s official website https://apps.who.int/immunization_monitoring/globalsummary/timeseries/tscoveragebcg.html, and it breaks down vaccine coverage by vaccine type, country, and year. Next, I wanted to look primarily at life expectancy per country per year.</description>
+    </item>
+    
+  </channel>
+</rss>

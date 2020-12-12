@@ -1,0 +1,201 @@
+---
+title: "Project 1: Global Health Determinants"
+author: "Rachel Sattler"
+date: "2020-10-18"
+output: html_document
+---
+
+```{r setup, include=FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F,
+tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
+
+library(cluster)
+library(RColorBrewer)
+library(plotly)
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(readr)
+life.expect <- read_csv("Life Expectancy Data.csv")
+head(life.expect)
+
+vaxes <- read_csv("Vax_coverage_by_country.csv")
+head(vaxes)
+
+```
+
+## Analyzing Determinants of Life Expectancy Across the World
+
+For this project, I was inspired by my Human Infectious Diseases and Clinical Bacteriology courses to study the effects of widespread vaccination coverage on global health. I found my first dataset on the WHO's official website <https://apps.who.int/immunization_monitoring/globalsummary/timeseries/tscoveragebcg.html>, and it breaks down vaccine coverage by vaccine type, country, and year. 
+  Next, I wanted to look primarily at life expectancy per country per year. I looked through a few different datasets online, but the one ended up choosing had many additional variables, such as mortality rate, status of country (developed or developing), and percent expenditure on health of total government expenditure, that I was interested in looking at and thought could potentially elevate the quality of my resulting conclusions. My second dataset came from <https://www.kaggle.com/kumarajarshi/life-expectancy-who>.
+
+
+## Joining the Datasets
+
+#####To generate one comprehensive dataset, I decided to use inner_join. I did this because both of the datasets are from the World Health Organization, so I expect most of the variables to be in both datasets. Furthermore, since I mean to compare vaccine coverage from one dataset to life expectancy in another, any data not in both is not super helpful for this comparison. 
+
+```{r}
+#Here, I'm looking at the structure of each dataset and the variables they contain. This also helps me with the join function, because I can tell if each dataset has the same name for the column I want to join on. 
+glimpse(vaxes)
+glimpse(life.expect)
+#Now, I want to join my datasets by both Year and Country, but my vaxes dataset has a different name for countries. In order to get inner_join to recognize that both country and year are the same variable in both datasets, I need to rename country 
+names(vaxes)[3] <- "Country"
+#I can check how many observations are dumped after the inner join by determining how many rows are in both datasets. 
+setdiff(vaxes$Country, life.expect$Country)
+setdiff(life.expect$Country, vaxes$Country)
+#We can see that a total of 7 countries were left off of our comprehensive joined dataset: three from the life.expect dataset, and four from the vaxes dataset.
+#Here, I perform the join and assign it to a new variable.
+proj <- inner_join(vaxes, life.expect)
+```
+  At first, I tried to join my dataset on the Country column of both, but because both of my datasets also had Year columns, those were not reconciled and my resulting datset contained a confusing mix of data, where the years for each dataset didn't match up. So some values, originally from the life.expect dataset were for one year and others, originally from the vaxes dataset, came from a completely different year. 
+    Obviously, this isn't very useful because you can't reasonably compare the vaccine coverage from 1980 to the life expectancy of a country in 2010. Therefore, I removed the "by = " function, and it looks like inner_join was able to determine on its own which columns matched up (Country *and* Year), and make sure both of those matched up in the final join.
+
+## Tidying 
+
+#####Here, I am looking to improve the readability of the dataset and sure there is no redundant information. This way, each column only contains information on a single variable, which will make the dataset easier to navigate when I generate the subsequent summary statistics, graphs, and clustering. 
+  
+```{r}
+#Here, I am pivoting so that each vaccine type has its own column. 
+proj <- proj %>% pivot_wider(names_from = Vaccine, values_from = Percent_covrage)
+#I can see that there is some redundant information on vaccine coverage from the life.expect dataset in the columns Polio, Diphtheria, and Hepatitis B. I want to remove these columns because I am only interested in vaccine coverage data from the vaxes dataset, and this way, there won't be any conflicting data. 
+proj <- proj[-c(13, 17, 19)]
+head(proj)
+```
+Now, we can better navigate the data by hand, but for R to be able to recognize the data and peform the tasks I would like, I need to place the vaccine types back into a single column. This is especially important when we get to the graphing portion, because I want to plot the coverage of all vaccine types over time, averaged over all of the countries. To plot mutiple vaccines, I need pivot_wider so that one column contains all of the vaccine types, and another contains all of the percent coverages. 
+```{r}
+proj <- proj %>% pivot_longer(cols=c(24:53), names_to = "Vaccine", values_to = "Percent_Coverage") 
+```
+
+##Summary Statistics
+
+#####I am using this section to gain a better idea of the relationships that can be drawn across different variables for each country. 
+```{r}
+#We can look at how many vaccines are available in this dataset, and we can confirm that every vaccine type was applied to each country, even if its percent coverage value is NA
+proj %>% group_by(Vaccine) %>% unique() %>% summarize(n())
+```
+To get an idea of the overall vaccine coverage in each country, I can add up all of the percent coverages for each vaccine, and divide by the total maximum possible coverage, which is 100% of all 30 vaccines. Then, I can look at which country has the greatest overall vaccine coverage. 
+```{r}
+proj %>% group_by(Country)
+proj_extended <- proj %>% group_by(Country) %>% mutate(overall_coverage = (sum(Percent_Coverage, na.rm = T)/(30*100))) 
+proj_extended %>% arrange(-overall_coverage) 
+#From here, we can see that Oman looks to have the highest overall vaccine coverage. 
+```
+My dataset includes an Asterisc column, where countries recieve an * if they report vaccine coverage over 99.5%. Originally, I tried to use this to confirm which country has the most vaccines with asterisks in that column, but I realized that that column was not accurate upon downloading. Instead, I can look at the countries that have a percent coverage vale of over 99. 
+```{r}
+proj %>% group_by(Country) %>% unique %>% filter(Percent_Coverage <= 99) %>% summarise(n=n()) %>% arrange(-n)
+#From this, we can see that Panama and Oman have the greatest number of reported coverages over 99%. I believe the reason Panama shows up here as higher vaccine coverage and not in my previous calculation because although Panema has more vaccines that have >90% coverage, they do not have data available for other vaccines at coverages of below 99%, while Omen does. Therefore, I can confirm that my generated variable to determine overall coverage is accurate, and a better predictor than the Asterisc variable built into my dataset.
+```
+
+Next, we can look at the proportion of developed vs developing countries in this dataset, grouped by continent. 
+
+```{r}
+proj %>% group_by(Continent, Status) %>% summarize(n())
+#From this, we can see that all countries in Africa and South America were labeled as Developing. To find the proportion of the developed countries, we can use the code below.
+proj %>% group_by(Continent) %>% summarize(mean(Status == "Developing"))
+
+
+#We can look at the average life expectancy of each country in 2015
+proj %>% group_by(Country) %>% filter(Year==2015) %>% summarize(mean(`Life expectancy`, na.rm = T)) 
+#We can also look at the average life expectancy across the globe during 2015. 
+proj %>% filter(Year==2015) %>% summarise(mean(`Life expectancy`, na.rm = T))
+#Next, we can extract countries that had a life expectancy of over 71.71 years in 2015 and 
+long_life <- proj %>% filter(Year==2015) %>% filter(`Life expectancy`>= 71.71)
+#What proportion of these is considered to be a "Developing" country?
+long_life %>% summarise(mean(Status=="Developing"))
+#We can determine that 75.5% of countries that have above the global average for life expectancy are considered "Developing"
+```
+```{r}
+#Here, were looking at countries with the greatest average expendature on healthcare, as a percentage of total GDP form 2000-2015. 
+proj %>% group_by(Country) %>% summarize(avg_expend = mean(`Total expenditure`, na.rm = T), sd_expend = sd(`Total expenditure`, na.rm = T)) %>% arrange(-avg_expend)
+#We can also look at the values of GDP for countries compared to their overall coverage. I filtered by a single vaccine, 
+proj_extended %>% mutate(overall_GDP = mean(GDP)) %>% filter(Year==2000, Vaccine=="BCG") %>% select(overall_GDP, overall_coverage) %>%  arrange(-overall_coverage) 
+```
+
+##Graphing
+
+#####I can better visualize this data by creating multiple different graph types, which will summarize the data found in my joined dataset. Graphing is a very useful way to organize data to explore new trends and relationships between variables that are difficult to see through the raw data and summary statistics. 
+  
+###Correlation Heat Map
+```{r}
+#Build correlation matrix
+cormat <- proj %>% select_if(is.numeric) %>% cor(use="pair")
+tidycor <- cormat %>% as.data.frame %>% rownames_to_column("var1") %>%
+pivot_longer(-1,names_to="var2",values_to="correlation")
+tidycor
+
+
+#Visualizing the matrix
+tidycor%>%ggplot(aes(var1,var2,fill=correlation))+
+geom_tile()+
+scale_fill_gradient2(low="red",mid="orange",high="yellow")+
+  geom_text(aes(label=round(correlation,2)),color = "black", size = 1)+ #overlay values
+theme(axis.text.x = element_text(angle = 90, hjust=1))+ #flips x-axis labels
+coord_fixed() #makes it square
+```
+*Here, we are able to view how all of my numeric variables correlate to one another. It can be seen that variables such as percentage expendature and GDP, and years of schooling and income composition of resources (amount of income contributed to public resources) are highly correlated with one another, which means they are good predictors for the other. However, variables like thinness and deaths per 1,000 births due to HIV/AIDS are generally not very helpful in the sense that they generally do not correlate well with the other measured variables.* 
+
+###Scatter Plot of Vaccine Coverage Over Time
+```{r, warning = FALSE}
+#Build the graph layer-by-layer.
+proj.graph1 <- proj %>% group_by(Vaccine, Year) %>% summarize(mean_coverage = mean(Percent_Coverage, na.rm = T), .groups = "keep") %>% ggplot(aes(Year, mean_coverage, color = Vaccine)) +
+  geom_point() + 
+  geom_line(aes(group = Vaccine)) +
+  ggtitle("Average Global Vaccine Coverage from 2000-2015")+
+  xlab("Year") +
+  ylab("Average Global Coverage") +
+  theme_minimal() +
+  scale_x_continuous(breaks = seq(2000, 2015, 2))
+proj.graph1
+proj.graph1 + facet_wrap(~Vaccine)
+#Could not change the colors, because the color palletes I found online did not include enough different colors to work for my 30 vaccine variables.
+```
+*Here, I group by vaccine type and year to average the coverage values across all the countries, in order to get a broader outlook of vaccine coverage globally, as time progresses. I can also look at a faceted graph of these values to better track the coverage of a single vaccine over time. The faceted graph may not provide much information in terms of comparing vaccines with similar trends like with the (BCG) and meningococcal (MCV) vaccines, but it does allow us to better see more drastic trends, like with yellow fever (YFV) and rotavirus (RotaC) vaccines, which have been administered at much higher numbers in more recent years. From this data, we can also see where we have insufficient, or truncated data collection in the recent years, such as with the MMR and Mumps vaccines. This data is not immediately useful, but can help inform where there are gaps in the data and direct future data collection methods.*
+
+###Bar Plot of Adult Mortality per Continent 
+```{r}
+#Next, we can look more specifically at how the vaccine coverage is affected by total expendature on 
+proj %>% ggplot(aes(Continent, `Adult Mortality`, fill = Status)) + 
+  geom_bar(stat="summary", position="dodge") + 
+  geom_errorbar(stat="summary", position="dodge") +
+  theme_minimal() +
+  scale_fill_brewer(palette="Greens") 
+
+```
+*It is easy to see that mortality is significantly higher in developing countries compared to developed countries. There are a lot of ways to further explore this, such as looking at access to healthcare, disease prevalance, and amount of infectious disease reservoirs per country that could help explain this phenomenon.*
+
+##Clustering - PAM 
+
+#####We perform clustering to try to recreate the structure of the data without using every variable. We do this by creating groups in which our variables can be clustered into, which are meant to encompass the overall trends seen in the entire dataset. 
+
+```{r}
+#Fist, we clean up the dataset to include only numeric variables and no NA values
+proj_cluster <- proj %>% na.omit() %>% select_if(is.numeric)
+#Next, we find silhouette values to determine the optimal amount of clusters to use. 
+sil_width<-vector() 
+for(i in 2:10){
+  kms <- kmeans(proj_cluster,centers=i) 
+  sil <- silhouette(kms$cluster,dist(proj_cluster)) 
+  sil_width[i]<-mean(sil[,3]) 
+}
+ggplot()+geom_line(aes(x=1:10,y=sil_width))+scale_x_continuous(name="k",breaks=1:10)
+#This tells me to use 2 clusters for further analysis.
+pam <-proj_cluster %>% scale %>% pam(2)
+#Run our clustering
+pam
+#Now, graph pairwise combinations of variables I'm interested in 
+pamclust<-proj_cluster %>% mutate(cluster=as.factor(pam$clustering))
+pamclust %>% ggplot(aes(`Total expenditure`, `Life expectancy`,color=cluster)) + geom_point() + scale_color_brewer(palette = "Paired")
+pamclust %>% ggplot(aes(`Income composition of resources`, `Total expenditure`,color=cluster)) + geom_point() + scale_color_brewer(palette = "Paired")
+pamclust %>% ggplot(aes(`Life expectancy`, `Income composition of resources`,color=cluster)) + geom_point() + scale_color_brewer(palette = "Paired")
+```
+*Here, we can see that with my first cluster, a loose trend can be seen in which there is a group with very high life expectancy and medium-to-low expendature on health, and there is another cluster that has lower lie expectancy and more variation in expendature. In the second plot, we can see grouping based on countries with high income composition of resources (which measures the proportion of income that goes towards healthcare), but there does not seem to be any effect of total expenditure on the grouping, because in both groups, total expendature is distributed very similarly. Finally, with the last plot, we can see a very strong grouping of countries with high income composition of resources and life expectancy, which means that many observations in my dataset can be grouped well using these two variables. Taking into account all of these graphs and looking closely at the data, we can see that cluster 2 on each graph is mainly composed of the developed countries in my dataset.*
+
+
+```{r}
+pam$silinfo$avg.width
+pam$silinfo$widths %>% as.data.frame %>% mutate(x=dim(pam$silinfo$widths)[1]:1)%>% 
+ggplot(aes(x, y=sil_width, fill=as.factor(cluster))) + geom_bar(stat="identity") + xlab("") +
+facet_grid(cluster~., scales="free_y") + coord_flip() + theme(legend.position="none") 
+plot(pam,which=2)
+```
+*This shows me that my clustering analysis (with an average silhouette width of 0.3) is not structured well enough to be representative of my data. Perhaps this means that the observations in my dataset are far too varied (since there were so many variables recorded) to be clustered using two groups, even though that was the optimal group size calculated above. This could mean that some further data cleanup should be used to better extrapolate the structure of the overall dataset.*
