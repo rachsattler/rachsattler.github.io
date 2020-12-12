@@ -65,6 +65,6 @@ iris %>% ggplot(aes(x = Species, y = petalw)) + geom_boxplot(aes(fill = Species)
 So from this, we can easily see that using reticulate allows us to toggle back and forth with a single dataset and use two different languages for two different functions!
 
 
-I am very very pleased with all that I have learned throughout this course, and I fully intend to continue developing the skills I have learned and applying them to my lab work in the future. Although the course is over, I am very proud of the work we as a class have accomplished, and am excited to have these new skills! 
+I am very very pleased with all that I have learned throughout this course, and I fully intend to continue developing the skills I have learned and applying them to my lab work in the future. Although I am disappointed the course is over (the time has really flown by very quickly), I am very proud of the work we as a class have accomplished, and am excited to have these new skills! 
 
 ![](https://media.giphy.com/media/8UGGp7rQvfhe63HrFq/giphy.gif)
