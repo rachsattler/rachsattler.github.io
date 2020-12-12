@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Rachel Sattler" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="../../../../../img/favicon.ico">
+    <title>Using Reticulate</title>
+    <meta name="generator" content="Hugo 0.79.0" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="../../../../../css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="../../../../../"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="../../../../../post/">BLOG</a></li>
+        
+        <li><a href="../../../../../projects/">PROJECTS</a></li>
+        
+        <li><a href="../../../../../resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="../../../../../post/2020/12/09/test-post/">Using Reticulate</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         December 9, 2020 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<p>Throughout this semester in Computational Biology and Bioinformatics, we have been learning the ropes of basic coding in R and python. We have been using these skills to gain a better sense of how to wrangle/tidy data, how to visualize it to determine overall trends within the data, and how to best interperet these trends in a manner that serves to give us a better idea of the most relevant information to our probing questions or hypotheses.</p>
+<p>Throughout the entire process, we have learned that developing coding skills in multiple languages allowes us to expand our bioinformatic repertiore and aids in our ability to problem sove using a wide variety of approaches.</p>
+<p>I, myself, have been able to see quite a drastic improvement in my coding skills throughout this semester, because I have pushed myself to dive more deeply into bioinformatics, and challenged myself to code in bash, R, and python throughout the course of multiple computational projects I have worked on throughout the semester. I believe learning multiple languages really reenforces the basics you have learned in each, and challenges you to think more creatively about how to approach a particular problem.</p>
+<p>One of the most useful things I have learned throughout this semester is how to use the reticulate package in R. This package allows for a sort of cross-talk between coding languages, so you are able to seamlessly switch between working with a dataset in R and in python. This type of package really serves to promote the interaction of the two languages within the context of a single project, because it allows you to be able to fully take advantage of the unique strengths of each language.</p>
+<p>I have included a simple exmaple of this down below.</p>
+<pre class="r"><code>#First, we need to load in the packages we intend to utilize
+library(reticulate)
+library(ggplot2)
+library(dplyr)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>#Then, we decide which dataset to use. Since R has many easily downloadable and publically available datasets, let&#39;s choose one of those. 
+iris &lt;- iris
+head(iris)</code></pre>
+<pre><code>##   Sepal.Length Sepal.Width Petal.Length Petal.Width Species
+## 1          5.1         3.5          1.4         0.2  setosa
+## 2          4.9         3.0          1.4         0.2  setosa
+## 3          4.7         3.2          1.3         0.2  setosa
+## 4          4.6         3.1          1.5         0.2  setosa
+## 5          5.0         3.6          1.4         0.2  setosa
+## 6          5.4         3.9          1.7         0.4  setosa</code></pre>
+<pre class="r"><code>#Now, rename the columns so they are compatable in python
+iris &lt;- iris %&gt;% rename(
+    sepall = Sepal.Length,
+    sepalw = Sepal.Width, 
+    petall = Petal.Length, 
+    petalw = Petal.Width
+    )
+head(iris)</code></pre>
+<pre><code>##   sepall sepalw petall petalw Species
+## 1    5.1    3.5    1.4    0.2  setosa
+## 2    4.9    3.0    1.4    0.2  setosa
+## 3    4.7    3.2    1.3    0.2  setosa
+## 4    4.6    3.1    1.5    0.2  setosa
+## 5    5.0    3.6    1.4    0.2  setosa
+## 6    5.4    3.9    1.7    0.4  setosa</code></pre>
+<pre class="python"><code>#Here, we are loading our data that came from R into python! Cool, right?? 
+r.iris.head()</code></pre>
+<pre><code>##    sepall  sepalw  petall  petalw Species
+## 0     5.1     3.5     1.4     0.2  setosa
+## 1     4.9     3.0     1.4     0.2  setosa
+## 2     4.7     3.2     1.3     0.2  setosa
+## 3     4.6     3.1     1.5     0.2  setosa
+## 4     5.0     3.6     1.4     0.2  setosa</code></pre>
+<pre class="python"><code>#We can see that both this command and the one in the R chunk above show us the first six observations of this dataset. 
+#Here, we can also see one of the fundamental differences between coding in R and in python: the value it indexes on. In the R command, we can see that the first observaiton is labeled &quot;1&quot;, but in the python command, it is labeled as &quot;0&quot;
+
+#Now, let&#39;s use python to get a better sense of the values in this dataset. 
+
+r.iris.describe()</code></pre>
+<pre><code>##            sepall      sepalw      petall      petalw
+## count  150.000000  150.000000  150.000000  150.000000
+## mean     5.843333    3.057333    3.758000    1.199333
+## std      0.828066    0.435866    1.765298    0.762238
+## min      4.300000    2.000000    1.000000    0.100000
+## 25%      5.100000    2.800000    1.600000    0.300000
+## 50%      5.800000    3.000000    4.350000    1.300000
+## 75%      6.400000    3.300000    5.100000    1.800000
+## max      7.900000    4.400000    6.900000    2.500000</code></pre>
+<pre class="r"><code>#However, if we want to use ggplot to make a boxplot, we can easily switch back to using R isntead of python. 
+
+iris %&gt;% ggplot(aes(x = Species, y = petalw)) + geom_boxplot(aes(fill = Species))</code></pre>
+<p><img src="../../../../../post/2020-12-11-test-post_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre class="r"><code>#Here, we are looking at the distribution of petal widths across each species. </code></pre>
+<p>So from this, we can easily see that using reticulate allows us to toggle back and forth with a single dataset and use two different languages for two different functions!</p>
+<p>I am very very pleased with all that I have learned throughout this course, and I fully intend to continue developing the skills I have learned and applying them to my lab work in the future. Although the course is over, I am very proud of the work we as a class have accomplished, and am excited to have these new skills!</p>
+<div class="figure">
+<img src="https://media.giphy.com/media/8UGGp7rQvfhe63HrFq/giphy.gif" />
+
+</div>
+
+            
+        <hr>         <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div> 
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="../../../../../js/docs.min.js"></script>
+<script src="../../../../../js/main.js"></script>
+
+<script src="../../../../../js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

@@ -1,9 +1,70 @@
 ---
-title: Test Post
+title: Using Reticulate
 author: ''
-date: '2020-12-11'
+date: '2020-12-09'
 slug: test-post
 categories: []
 tags: []
 description: ''
 ---
+Throughout this semester in Computational Biology and Bioinformatics, we have been learning the ropes of basic coding in R and python. We have been using these skills to gain a better sense of how to wrangle/tidy data, how to visualize it to determine overall trends within the data, and how to best interperet these trends in a manner that serves to give us a better idea of the most relevant information to our probing questions or hypotheses. 
+
+Throughout the entire process, we have learned that developing coding skills in multiple languages allowes us to expand our bioinformatic repertiore and aids in our ability to problem sove using a wide variety of approaches. 
+
+I, myself, have been able to see quite a drastic improvement in my coding skills throughout this semester, because I have pushed myself to dive more deeply into bioinformatics, and challenged myself to code in bash, R, and python throughout the course of multiple computational projects I have worked on throughout the semester. I believe learning multiple languages really reenforces the basics you have learned in each, and challenges you to think more creatively about how to approach a particular problem. 
+
+One of the most useful things I have learned throughout this semester is how to use the reticulate package in R. This package allows for a sort of cross-talk between coding languages, so you are able to seamlessly switch between working with a dataset in R and in python. This type of package really serves to promote the interaction of the two languages within the context of a single project, because it allows you to be able to fully take advantage of the unique strengths of each language. 
+
+I have included a simple exmaple of this down below. 
+
+```{R}
+#First, we need to load in the packages we intend to utilize
+library(reticulate)
+library(ggplot2)
+library(dplyr)
+
+
+#Then, we decide which dataset to use. Since R has many easily downloadable and publically available datasets, let's choose one of those. 
+iris <- iris
+head(iris)
+#Now, rename the columns so they are compatable in python
+iris <- iris %>% rename(
+    sepall = Sepal.Length,
+    sepalw = Sepal.Width, 
+    petall = Petal.Length, 
+    petalw = Petal.Width
+    )
+head(iris)
+```
+
+
+```{python}
+#Here, we are loading our data that came from R into python! Cool, right?? 
+r.iris.head()
+```
+
+```{python}
+#We can see that both this command and the one in the R chunk above show us the first six observations of this dataset. 
+#Here, we can also see one of the fundamental differences between coding in R and in python: the value it indexes on. In the R command, we can see that the first observaiton is labeled "1", but in the python command, it is labeled as "0"
+
+#Now, let's use python to get a better sense of the values in this dataset. 
+
+r.iris.describe()
+
+```
+
+```{R}
+#However, if we want to use ggplot to make a boxplot, we can easily switch back to using R isntead of python. 
+
+iris %>% ggplot(aes(x = Species, y = petalw)) + geom_boxplot(aes(fill = Species))
+
+#Here, we are looking at the distribution of petal widths across each species. 
+
+```
+
+So from this, we can easily see that using reticulate allows us to toggle back and forth with a single dataset and use two different languages for two different functions!
+
+
+I am very very pleased with all that I have learned throughout this course, and I fully intend to continue developing the skills I have learned and applying them to my lab work in the future. Although the course is over, I am very proud of the work we as a class have accomplished, and am excited to have these new skills! 
+
+![](https://media.giphy.com/media/8UGGp7rQvfhe63HrFq/giphy.gif)

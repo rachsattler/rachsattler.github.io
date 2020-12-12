@@ -6,14 +6,14 @@
     <description>Recent content on Computational Biology and Bioinformatics Course Summary</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Fri, 11 Dec 2020 00:00:00 +0000</lastBuildDate><atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 09 Dec 2020 00:00:00 +0000</lastBuildDate><atom:link href="/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Test Post</title>
-      <link>/post/2020/12/11/test-post/</link>
-      <pubDate>Fri, 11 Dec 2020 00:00:00 +0000</pubDate>
+      <title>Using Reticulate</title>
+      <link>/post/2020/12/09/test-post/</link>
+      <pubDate>Wed, 09 Dec 2020 00:00:00 +0000</pubDate>
       
-      <guid>/post/2020/12/11/test-post/</guid>
-      <description></description>
+      <guid>/post/2020/12/09/test-post/</guid>
+      <description>Throughout this semester in Computational Biology and Bioinformatics, we have been learning the ropes of basic coding in R and python. We have been using these skills to gain a better sense of how to wrangle/tidy data, how to visualize it to determine overall trends within the data, and how to best interperet these trends in a manner that serves to give us a better idea of the most relevant information to our probing questions or hypotheses.</description>
     </item>
     
     <item>
